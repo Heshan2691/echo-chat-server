@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo Chat Room</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; background: #f4f4f4; }
+        #messages { background: white; height: 300px; overflow-y: scroll; padding: 10px; border: 1px solid #ccc; margin-bottom: 10px; }
+        #inputArea { display: flex; }
+        #messageInput { flex: 1; padding: 10px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .system { color: #666; font-style: italic; }
+        .userMsg { color: #007bff; }
+        .ownMsg { color: #28a745; font-weight: bold; }  /* New: Green for your own messages */
+    </style>
+</head>
+<body>
+<h1>Echo Chat Room</h1>
+<div id="messages"></div>
+<div id="inputArea">
+    <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage();">
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+    const ws = new WebSocket('ws://localhost:1234');  // Connect to your Java server
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('messageInput');
+    let myUsername = '';  // New: Store your username locally
+
+    ws.onopen = function() {
+        addMessage('Connected! Waiting for username prompt...', 'system');
+    };
+
+    ws.onmessage = function(event) {
+        const msg = event.data;
+        if (msg.includes('Enter your username:')) {
+            // Prompt for username and store it locally
+            const username = prompt(msg) || 'Anonymous';
+            myUsername = username;  // Store for local use
+            ws.send(username);
+            addMessage('Welcome, ' + username + '! Type messages below. (Use /exit to quit)', 'system');
+        } else {
+            addMessage(msg, msg.includes(':') ? 'userMsg' : 'system');  // Style user vs system msgs
+        }
+    };
+
+    ws.onclose = function() {
+        addMessage('Disconnected from server.', 'system');
+    };
+
+    function sendMessage() {
+        const msg = input.value.trim();
+        if (msg) {
+            // New: Immediately add to local chat (optimistic update)
+            addMessage('You: ' + msg, 'ownMsg');  // Show as "You: message" in green
+
+            // Send to server for broadcasting to others
+            ws.send(msg);
+            input.value = '';
+        }
+    }
+
+    function addMessage(text, className = '') {
+        const p = document.createElement('p');
+        p.textContent = text;
+        if (className) p.className = className;
+        messagesDiv.appendChild(p);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Auto-scroll
+    }
+</script>
+</body>
+</html>
