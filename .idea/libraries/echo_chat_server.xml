@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="echo-chat-server">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/slf4j-api-2.0.17.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Java-WebSocket-1.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Java-WebSocket-1.6.0-javadoc.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
